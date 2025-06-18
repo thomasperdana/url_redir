@@ -17,7 +17,15 @@ type routeData struct {
 var routes []routeData
 
 func init() {
-	_ = json.Unmarshal(config.Data, &routes)
+	fmt.Printf("INIT: Raw embedded data: %s\n", string(config.Data))
+	err := json.Unmarshal(config.Data, &routes)
+	if err != nil {
+		fmt.Printf("INIT: Error unmarshaling: %v\n", err)
+	}
+	fmt.Printf("INIT: Loaded %d routes\n", len(routes))
+	for i, route := range routes {
+		fmt.Printf("INIT: Route %d - Scope: %s, Rules: %v\n", i, route.Scope, route.Rules)
+	}
 }
 
 func UrlHandler(w http.ResponseWriter, r *http.Request) {
