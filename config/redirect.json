@@ -1,5 +1,11 @@
 [
   {
+    "scope": "about\\.me",
+    "rules": {
+      "thomas.perdana": "https://about.cashinblue.com"
+    }
+  },
+  {
     "scope": ".*\\.your-domain\\.com",
     "rules": {
       "example": "https://baidu.com/"
