@@ -53,8 +53,9 @@ func loadFallbackConfig() {
 		{
 			Scope: "about\\.me",
 			Rules: map[string]string{
-				"/":              "https://about.cashinblue.com",
-				"thomas.perdana": "https://about.cashinblue.com",
+				"":               "https://about.cashinblue.com", // Empty path
+				"/":              "https://about.cashinblue.com", // Root path
+				"thomas.perdana": "https://about.cashinblue.com", // Specific path
 			},
 		},
 		{
@@ -79,13 +80,25 @@ func loadFallbackConfig() {
 }
 
 func UrlHandler(w http.ResponseWriter, r *http.Request) {
+	// Debug logging
+	fmt.Printf("Request: Host=%s, Path=%s\n", r.Host, r.URL.Path)
+
 	for _, rt := range routes {
 		scope := regexp.MustCompile(rt.Scope)
 		if scope.MatchString(r.Host) {
-			// Handle root path
+			fmt.Printf("Matched scope: %s\n", rt.Scope)
+
+			// Handle root path first
 			if r.URL.Path == "" || r.URL.Path == "/" {
-				if rt.Rules["/"] != "" {
-					http.Redirect(w, r, rt.Rules["/"], http.StatusFound)
+				if url, exists := rt.Rules["/"]; exists && url != "" {
+					fmt.Printf("Root redirect to: %s\n", url)
+					http.Redirect(w, r, url, http.StatusFound)
+					return
+				}
+				// If no root rule, treat as empty path
+				if url, exists := rt.Rules[""]; exists && url != "" {
+					fmt.Printf("Empty path redirect to: %s\n", url)
+					http.Redirect(w, r, url, http.StatusFound)
 					return
 				}
 			}
@@ -96,14 +109,19 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 				pathKey = r.URL.Path[1:]
 			}
 
-			if url := rt.Rules[pathKey]; url != "" {
+			fmt.Printf("Looking for path key: '%s'\n", pathKey)
+			if url, exists := rt.Rules[pathKey]; exists && url != "" {
+				fmt.Printf("Redirecting to: %s\n", url)
 				http.Redirect(w, r, url, http.StatusFound)
 				return
-			} else {
-				_, _ = fmt.Fprintf(w, "Invalid short name for path: '%s'", pathKey)
-				return
 			}
+
+			// If we reach here, no rule was found for this host
+			fmt.Printf("No rule found for path: '%s'\n", pathKey)
+			_, _ = fmt.Fprintf(w, "Invalid short name for path: '%s'", pathKey)
+			return
 		}
 	}
+	fmt.Printf("No matching scope for host: %s\n", r.Host)
 	_, _ = fmt.Fprintf(w, "No routes configured for host: %s", r.Host)
 }
