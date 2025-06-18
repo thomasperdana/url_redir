@@ -29,20 +29,30 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 		scope := regexp.MustCompile(rt.Scope)
 		if scope.MatchString(r.Host) {
 			fmt.Printf("DEBUG: Host '%s' matches scope '%s'\n", r.Host, rt.Scope)
-			if rt.Rules["/"] != "" && r.URL.Path == "" {
-				fmt.Printf("DEBUG: Root redirect to %s\n", rt.Rules["/"])
-				http.Redirect(w, r, rt.Rules["/"], http.StatusFound)
-				return
+
+			// Handle root path
+			if r.URL.Path == "" || r.URL.Path == "/" {
+				if rt.Rules["/"] != "" {
+					fmt.Printf("DEBUG: Root redirect to %s\n", rt.Rules["/"])
+					http.Redirect(w, r, rt.Rules["/"], http.StatusFound)
+					return
+				}
 			}
-			pathKey := r.URL.Path[1:]
+
+			// Handle specific paths
+			pathKey := ""
+			if len(r.URL.Path) > 1 {
+				pathKey = r.URL.Path[1:]
+			}
 			fmt.Printf("DEBUG: Looking for path key '%s'\n", pathKey)
+
 			if url := rt.Rules[pathKey]; url != "" {
 				fmt.Printf("DEBUG: Redirecting '%s' to '%s'\n", pathKey, url)
 				http.Redirect(w, r, url, http.StatusFound)
 				return
 			} else {
 				fmt.Printf("DEBUG: No rule found for path '%s'\n", pathKey)
-				_, _ = fmt.Fprintf(w, "Invalid short name for path: %s", pathKey)
+				_, _ = fmt.Fprintf(w, "Invalid short name for path: '%s'", pathKey)
 				return
 			}
 		} else {
