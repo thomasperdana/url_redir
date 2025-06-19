@@ -17,21 +17,29 @@ type routeData struct {
 var routes []routeData
 
 func init() {
+	fmt.Printf("INIT: Starting initialization...\n")
+
 	// Try to load from embedded data first
 	err := json.Unmarshal(config.Data, &routes)
 	if err != nil {
 		fmt.Printf("INIT: Error unmarshaling embedded data: %v\n", err)
 		// Fallback to hardcoded configuration
 		loadFallbackConfig()
+	} else {
+		fmt.Printf("INIT: Successfully loaded embedded data\n")
 	}
 
+	// Check if we have the required routes
+	hasValidConfig := len(routes) > 0 && hasAboutMeRoute()
+	fmt.Printf("INIT: Valid config check: routes=%d, hasAboutMe=%v\n", len(routes), hasAboutMeRoute())
+
 	// If no routes loaded or missing our specific route, use fallback
-	if len(routes) == 0 || !hasAboutMeRoute() {
-		fmt.Printf("INIT: Using fallback configuration\n")
+	if !hasValidConfig {
+		fmt.Printf("INIT: Using fallback configuration (missing required routes)\n")
 		loadFallbackConfig()
 	}
 
-	fmt.Printf("INIT: Loaded %d routes\n", len(routes))
+	fmt.Printf("INIT: Final loaded %d routes\n", len(routes))
 	for i, route := range routes {
 		fmt.Printf("INIT: Route %d - Scope: %s, Rules: %v\n", i, route.Scope, route.Rules)
 	}
@@ -40,9 +48,21 @@ func init() {
 func hasAboutMeRoute() bool {
 	for _, route := range routes {
 		if route.Scope == "about\\.me" {
-			if _, exists := route.Rules["thomas.perdana"]; exists {
-				return true
+			// Check if we have both root path and thomas.perdana rules
+			hasRoot := false
+			hasThomas := false
+
+			if _, exists := route.Rules["/"]; exists {
+				hasRoot = true
 			}
+			if _, exists := route.Rules[""]; exists {
+				hasRoot = true
+			}
+			if _, exists := route.Rules["thomas.perdana"]; exists {
+				hasThomas = true
+			}
+
+			return hasRoot && hasThomas
 		}
 	}
 	return false
