@@ -93,17 +93,22 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 
 			// Handle root path first
 			if r.URL.Path == "" || r.URL.Path == "/" {
+				// Try root rule first
 				if url, exists := rt.Rules["/"]; exists && url != "" {
 					fmt.Printf("Root redirect to: %s\n", url)
 					http.Redirect(w, r, url, http.StatusFound)
 					return
 				}
-				// If no root rule, treat as empty path
+				// Try empty path rule
 				if url, exists := rt.Rules[""]; exists && url != "" {
 					fmt.Printf("Empty path redirect to: %s\n", url)
 					http.Redirect(w, r, url, http.StatusFound)
 					return
 				}
+				// If no root rules found, show error for root path
+				fmt.Printf("No rule found for root path\n")
+				_, _ = fmt.Fprintf(w, "No redirect configured for root path")
+				return
 			}
 
 			// Handle specific paths
@@ -119,7 +124,7 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// If we reach here, no rule was found for this host
+			// If we reach here, no rule was found for this specific path
 			fmt.Printf("No rule found for path: '%s'\n", pathKey)
 			_, _ = fmt.Fprintf(w, "Invalid short name for path: '%s'", pathKey)
 			return
