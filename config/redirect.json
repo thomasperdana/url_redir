@@ -2,7 +2,12 @@
   {
     "scope": "about\\.me",
     "rules": {
-      "thomas.perdana": "https://about.cashinblue.com"
+      "": "https://about.cashinblue.com",
+      "/": "https://about.cashinblue.com",
+      "thomas.perdana": "https://about.cashinblue.com",
+      "portfolio": "https://portfolio.cashinblue.com",
+      "contact": "https://contact.cashinblue.com",
+      "blog": "https://blog.cashinblue.com"
     }
   },
   {

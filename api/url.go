@@ -53,7 +53,12 @@ func loadFallbackConfig() {
 		{
 			Scope: "about\\.me",
 			Rules: map[string]string{
-				"thomas.perdana": "https://about.cashinblue.com"     // Main profile
+				"":               "https://about.cashinblue.com",     // Empty path
+				"/":              "https://about.cashinblue.com",     // Root path
+				"thomas.perdana": "https://about.cashinblue.com",     // Main profile
+				"portfolio":      "https://portfolio.cashinblue.com", // Portfolio
+				"contact":        "https://contact.cashinblue.com",   // Contact
+				"blog":           "https://blog.cashinblue.com",      // Blog
 			},
 		},
 		{
