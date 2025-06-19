@@ -83,20 +83,35 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 
 			// Handle root path first
 			if r.URL.Path == "" || r.URL.Path == "/" {
+				fmt.Printf("DEBUG: Root path detected. Available rules: %v\n", rt.Rules)
+
 				// Try root rule first
 				if url, exists := rt.Rules["/"]; exists && url != "" {
 					fmt.Printf("Root redirect to: %s\n", url)
 					http.Redirect(w, r, url, http.StatusFound)
 					return
+				} else {
+					fmt.Printf("DEBUG: No '/' rule found or empty\n")
 				}
+
 				// Try empty path rule
 				if url, exists := rt.Rules[""]; exists && url != "" {
 					fmt.Printf("Empty path redirect to: %s\n", url)
 					http.Redirect(w, r, url, http.StatusFound)
 					return
+				} else {
+					fmt.Printf("DEBUG: No '' rule found or empty\n")
 				}
-				// If no root rules found, show error for root path
-				fmt.Printf("No rule found for root path\n")
+
+				// EMERGENCY FALLBACK: If no root rules found, force redirect for about.me
+				if rt.Scope == "about\\.me" {
+					fmt.Printf("EMERGENCY: Force redirecting about.me root to about.cashinblue.com\n")
+					http.Redirect(w, r, "https://about.cashinblue.com", http.StatusFound)
+					return
+				}
+
+				// For other domains, show error
+				fmt.Printf("ERROR: No rule found for root path. Rules available: %v\n", rt.Rules)
 				_, _ = fmt.Fprintf(w, "No redirect configured for root path")
 				return
 			}
@@ -111,6 +126,13 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 			if url, exists := rt.Rules[pathKey]; exists && url != "" {
 				fmt.Printf("Redirecting to: %s\n", url)
 				http.Redirect(w, r, url, http.StatusFound)
+				return
+			}
+
+			// EMERGENCY FALLBACK: If no rule found for thomas.perdana on about.me, force redirect
+			if rt.Scope == "about\\.me" && pathKey == "thomas.perdana" {
+				fmt.Printf("EMERGENCY: Force redirecting about.me/thomas.perdana to about.cashinblue.com\n")
+				http.Redirect(w, r, "https://about.cashinblue.com", http.StatusFound)
 				return
 			}
 
